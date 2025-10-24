@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useMemo, useState } from "react";
 
@@ -20,24 +19,30 @@ export default function Page() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [hover, setHover] = useState<string | null>(null);
 
+  // Load hotspots once
   useEffect(() => {
-    fetch(`/api/bookings?date=${date}`).then(r=>r.json()).then(setBookings);
-    fetch("/hotspots.json").then(r=>r.ok ? r.json() : []).then(setHotspots).catch(()=>setHotspots([]));
+    fetch("/hotspots.json")
+      .then(r => r.ok ? r.json() : [])
+      .then(setHotspots)
+      .catch(() => setHotspots([]));
+  }, []);
+
+  // Load bookings whenever the date changes
+  useEffect(() => {
+    fetch(`/api/bookings?date=${date}`)
+      .then(r => r.json())
+      .then(setBookings);
   }, [date]);
 
-  // existing:
-useEffect(() => {
-  fetch(`/api/bookings?date=${date}`).then(r=>r.json()).then(setBookings);
-  fetch("/hotspots.json").then(r=>r.ok ? r.json() : []).then(setHotspots).catch(()=>setHotspots([]));
-}, [date]);
-
-// NEW: poll every 30s for live changes
-useEffect(() => {
-  const id = setInterval(() => {
-    fetch(`/api/bookings?date=${date}`).then(r=>r.json()).then(setBookings);
-  }, 30_000); // 30 seconds
-  return () => clearInterval(id);
-}, [date]);
+  // Poll bookings every 30s to auto-refresh while open
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetch(`/api/bookings?date=${date}`)
+        .then(r => r.json())
+        .then(setBookings);
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [date]);
 
   const bySpace = useMemo(() => {
     const m = new Map<string, Booking[]>();
