@@ -25,6 +25,20 @@ export default function Page() {
     fetch("/hotspots.json").then(r=>r.ok ? r.json() : []).then(setHotspots).catch(()=>setHotspots([]));
   }, [date]);
 
+  // existing:
+useEffect(() => {
+  fetch(`/api/bookings?date=${date}`).then(r=>r.json()).then(setBookings);
+  fetch("/hotspots.json").then(r=>r.ok ? r.json() : []).then(setHotspots).catch(()=>setHotspots([]));
+}, [date]);
+
+// NEW: poll every 30s for live changes
+useEffect(() => {
+  const id = setInterval(() => {
+    fetch(`/api/bookings?date=${date}`).then(r=>r.json()).then(setBookings);
+  }, 30_000); // 30 seconds
+  return () => clearInterval(id);
+}, [date]);
+
   const bySpace = useMemo(() => {
     const m = new Map<string, Booking[]>();
     bookings.forEach(b => {
