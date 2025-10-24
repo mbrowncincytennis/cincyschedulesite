@@ -52,3 +52,7 @@ export async function GET(req: NextRequest) {
 
   return new Response(JSON.stringify(filtered), { headers: { "content-type": "application/json" } });
 }
+
+mv staff-microsite-starter/* .
+mv staff-microsite-starter/.* . 2>/dev/null || true
+rmdir staff-microsite-starter
