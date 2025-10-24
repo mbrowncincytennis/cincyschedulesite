@@ -44,3 +44,5 @@ Open http://localhost:3000. You'll be redirected to **/login**; use the password
 ### Notes
 - Ensure your Google Sheet sharing is set to "Anyone with the link can view" for the CSV to load. Alternatively, we can switch to a service account in a later iteration.
 - We can upgrade the on-click alert to a nice side panel / tooltip and add color-coding by event type.
+
+Commit to main
