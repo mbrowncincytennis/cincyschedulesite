@@ -9,3 +9,7 @@ export async function POST(request: Request) {
   }
   return new Response("nope", { status: 401 });
 }
+
+mv staff-microsite-starter/* .
+mv staff-microsite-starter/.* . 2>/dev/null || true
+rmdir staff-microsite-starter
