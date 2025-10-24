@@ -1,5 +1,6 @@
-
 import { NextRequest } from "next/server";
+
+export const dynamic = "force-dynamic"; // ensures Next.js never caches this route
 
 type Row = {
   "Date": string;
@@ -14,10 +15,10 @@ type Row = {
 function parseDate(d: string) {
   const try1 = new Date(d);
   if (!isNaN(+try1)) return try1;
-  const parts = d.split(/[/.-]/).map(x=>x.trim());
+  const parts = d.split(/[/.-]/).map(x => x.trim());
   if (parts.length === 3) {
     const [m, day, y] = parts.map(Number);
-    const dt = new Date(y, m-1, day);
+    const dt = new Date(y, m - 1, day);
     if (!isNaN(+dt)) return dt;
   }
   return new Date(d);
@@ -28,15 +29,18 @@ export async function GET(req: NextRequest) {
   const sheet = process.env.SHEET_ID || "1Oxj8FXI9h4czJMP5C18gl_AlGa1TOALk1xkgX77VBUI";
   const url = `https://docs.google.com/spreadsheets/d/${sheet}/gviz/tq?tqx=out:csv`;
 
-  const res = await fetch(url);
+  // 👇 no caching here
+  const res = await fetch(url, { cache: "no-store" });
   const csv = await res.text();
 
   const lines = csv.split(/\r?\n/).filter(Boolean);
-  const headers = lines[0].split(",").map(h=>h.trim());
+  const headers = lines[0].split(",").map(h => h.trim());
   const rows: Row[] = lines.slice(1).map(line => {
-    const cells = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g, "").replace(/\\"/g,'"').trim());
+    const cells = line
+      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map(c => c.replace(/^"|"$/g, "").replace(/\\"/g, '"').trim());
     const obj: any = {};
-    headers.forEach((h, i) => obj[h] = cells[i] ?? "");
+    headers.forEach((h, i) => (obj[h] = cells[i] ?? ""));
     return obj as Row;
   });
 
@@ -50,5 +54,11 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return new Response(JSON.stringify(filtered), { headers: { "content-type": "application/json" } });
+  // 👇 explicit no-cache headers
+  return new Response(JSON.stringify(filtered), {
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store, no-cache, must-revalidate, max-age=0",
+    },
+  });
 }
